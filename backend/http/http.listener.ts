@@ -1,7 +1,7 @@
 import { httpListener } from '@marblejs/http';
 import { logger$ } from '@marblejs/middleware-logger';
 import { bodyParser$ } from '@marblejs/middleware-body';
-import { api$ } from './api.effects';
+import { api$ } from '../api/api.effects';
 
 const middlewares = [
   logger$(),

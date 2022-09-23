@@ -1,16 +1,27 @@
 version: '3.5'
 
 services:
-  app:
-    build: .
+  frontend:
+    build: frontend
     ports:
-      - 3000:1337
+      - 3000:3000
     expose:
       - 3000
     volumes:
-      - .:/app
-      - node_modules:/app/node_modules
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    working_dir: /app
+  backend:
+    build: backend
+    ports:
+      - 1337:1337
+    expose:
+      - 1337
+    volumes:
+      - ./backend:/app
+      - backend_node_modules:/app/node_modules
     working_dir: /app
 
 volumes:
-  node_modules:
+  frontend_node_modules:
+  backend_node_modules:

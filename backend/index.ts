@@ -1,6 +1,6 @@
 import { createServer } from '@marblejs/http';
 import { IO } from 'fp-ts/lib/IO';
-import { listener } from './http.listener';
+import { listener } from './http/http.listener';
 
 const server = createServer({
   port: 1337,
