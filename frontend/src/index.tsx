@@ -1,11 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './index.css';
-import App from './App';
+import Home from './Home';
+import Room from './Room';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(
@@ -13,10 +11,14 @@ const root = ReactDOM.createRoot(
 );
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: <App />
-  }
-])
+    path: '/',
+    element: <Home />,
+  },
+  {
+    path: '/room',
+    element: <Room />,
+  },
+]);
 root.render(
   <React.StrictMode>
     <RouterProvider router={router} />
