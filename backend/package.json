@@ -8,9 +8,8 @@
   },
   "dependencies": {
     "@marblejs/core": "^4.0.3",
-    "@marblejs/http": "^4.0.3",
-    "@marblejs/middleware-body": "^4.0.3",
-    "@marblejs/middleware-logger": "^4.0.3",
+    "@marblejs/middleware-io": "^4.0.3",
+    "@marblejs/websockets": "^4.0.3",
     "fp-ts": "^2.12.3",
     "rxjs": "^7.5.6"
   },
