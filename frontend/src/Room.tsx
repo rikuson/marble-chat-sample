@@ -1,38 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useWebSocket } from './ws';
 
-const WS_URL = 'ws://localhost:1337';
-
-type Message = {
-  roomId: string;
+type MessagePayload = {
+  room: string;
   userName: string;
   message: string;
 };
 
-const wsClient = new WebSocket(WS_URL); // TODO: subprotocol
 const { searchParams } = new URL(location.href);
-const roomId = searchParams.get('roomId');
+const room = searchParams.get('room');
 const userName = searchParams.get('userName');
 
 function Room() {
   const [message, setMessage] = useState('');
-  const [lines, setLines] = useState<Message[]>([]);
+  const [lines, setLines] = useState<MessagePayload[]>([]);
+  const { handleMessage, sendMessage } = useWebSocket();
 
-  wsClient.onmessage = function (event) {
-    const { payload }: { payload: Message } = JSON.parse(event.data);
-    setLines([...lines, { ...payload }]);
-  };
+  if (!room || !userName) {
+    // FIXME: Error handling
+    location.href = '/';
+    throw new Error('err');
+  }
+
+  useEffect(() => {
+    handleMessage<MessagePayload>(({ payload }) => {
+      setLines([...lines, { ...payload }]);
+    });
+  }, [handleMessage, lines, setLines]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(event.target.value);
   };
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    wsClient.send(
-      JSON.stringify({
-        type: 'MESSAGE',
-        payload: { roomId, userName, message },
-      })
-    );
+    sendMessage<MessagePayload>({ room, userName, message });
     setMessage('');
   };
   return (
