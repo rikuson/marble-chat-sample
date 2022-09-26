@@ -1,6 +1,41 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useWebSocket } from './ws';
+
+type MessagePayload = {
+  room: string;
+  userName: string;
+  message: string;
+};
+
+const { searchParams } = new URL(location.href);
+const room = searchParams.get('room');
+const userName = searchParams.get('userName');
 
 function Room() {
+  const [message, setMessage] = useState('');
+  const [lines, setLines] = useState<MessagePayload[]>([]);
+  const { handleMessage, sendMessage } = useWebSocket();
+
+  if (!room || !userName) {
+    // FIXME: Error handling
+    location.href = '/';
+    throw new Error('err');
+  }
+
+  useEffect(() => {
+    handleMessage(({ payload }) => {
+      setLines([...lines, { ...payload }]);
+    });
+  }, [handleMessage, lines, setLines]);
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setMessage(event.target.value);
+  };
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    sendMessage({ room, userName, message });
+    setMessage('');
+  };
   return (
     <>
       <div className="relative bg-white dark:bg-gray-800">
@@ -51,10 +86,22 @@ function Room() {
         className="shadow-inner bg-gray-100 overflow-y-auto"
         id="subscribing"
         style={{ height: 'calc(100vh - 64px - 45px)' }}
-      ></div>
-      <form className="absolute bottom-0 w-full" id="publisher">
+      >
+        {lines.map(({ userName, message }, i) => (
+          <div key={i} className="p-2 border-b overflow-hidden leading-loose">
+            {userName}: {message}
+          </div>
+        ))}
+      </div>
+      <form
+        onSubmit={handleSubmit}
+        className="absolute bottom-0 w-full"
+        id="publisher"
+      >
         <div className="flex border-t border-gray-300 py-2 px-3">
           <input
+            onChange={handleChange}
+            value={message}
             className={[
               'placeholder-gray-500',
               'text-gray-900',
