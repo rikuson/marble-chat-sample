@@ -1,4 +1,7 @@
-const WS_URL = 'ws://localhost:1337';
+const WS_URL = process.env.REACT_APP_WS_URL;
+if (!WS_URL) {
+  throw new Error('WS_URL is not defined');
+}
 const wsClient = new WebSocket(WS_URL); // TODO: subprotocol
 
 // FIXME: Event listener should be outside.

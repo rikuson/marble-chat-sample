@@ -11,6 +11,8 @@ services:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
     working_dir: /app
+    environment:
+      - REACT_APP_WS_URL=ws://localhost:1337
   backend:
     build: backend
     ports:
@@ -21,6 +23,9 @@ services:
       - ./backend:/app
       - backend_node_modules:/app/node_modules
     working_dir: /app
+    environment:
+      - WS_HOST=0.0.0.0
+      - WS_PORT=1337
 
 volumes:
   frontend_node_modules:
