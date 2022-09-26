@@ -1,32 +1,37 @@
-const WS_URL = process.env.REACT_APP_WS_URL;
-if (!WS_URL) {
-  throw new Error('WS_URL is not defined');
-}
-const wsClient = new WebSocket(WS_URL); // TODO: subprotocol
+import { webSocket } from 'rxjs/webSocket';
 
-// FIXME: Event listener should be outside.
-function handleMessage<T>(
-  onMessage: (e: { type: string; payload: T }) => void
-) {
-  wsClient.onmessage = function ({ data }) {
-    const event: { type: string; payload: T } = JSON.parse(data);
-    switch (event.type) {
-      case 'MESSAGE':
-        onMessage(event);
-        break;
-      default:
-        console.log(event);
-    }
-  };
+export type WebSocketEvent<T> = {
+  type: string;
+  payload: T;
+};
+
+export type MessagePayload = {
+  room: string;
+  userName: string;
+  message: string;
+};
+
+const ws$ = (({ REACT_APP_WS_URL: url }) => {
+  if (!url) {
+    throw new Error('url is not defined');
+  }
+  return webSocket({ url });
+})(process.env);
+const message$ = ws$.multiplex(
+  () => ({ subscribe: 'MESSAGE' }),
+  () => ({ unsubscribe: 'MESSAGE' }),
+  (event: unknown) =>
+    (event as WebSocketEvent<MessagePayload>).type === 'MESSAGE'
+);
+
+function handleMessage(onMessage: (e: WebSocketEvent<MessagePayload>) => void) {
+  message$.subscribe((event: unknown) => {
+    onMessage(event as WebSocketEvent<MessagePayload>);
+  });
 }
 
-function sendMessage<T>(payload: T) {
-  return wsClient.send(
-    JSON.stringify({
-      type: 'MESSAGE',
-      payload,
-    })
-  );
+function sendMessage(payload: MessagePayload) {
+  ws$.next({ type: 'MESSAGE', payload });
 }
 
 export function useWebSocket() {

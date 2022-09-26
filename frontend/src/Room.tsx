@@ -23,7 +23,7 @@ function Room() {
   }
 
   useEffect(() => {
-    handleMessage<MessagePayload>(({ payload }) => {
+    handleMessage(({ payload }) => {
       setLines([...lines, { ...payload }]);
     });
   }, [handleMessage, lines, setLines]);
@@ -33,7 +33,7 @@ function Room() {
   };
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    sendMessage<MessagePayload>({ room, userName, message });
+    sendMessage({ room, userName, message });
     setMessage('');
   };
   return (
