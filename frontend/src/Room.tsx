@@ -14,7 +14,7 @@ const userName = searchParams.get('userName');
 function Room() {
   const [message, setMessage] = useState('');
   const [lines, setLines] = useState<MessagePayload[]>([]);
-  const { handleMessage, sendMessage } = useWebSocket();
+  const { subscribeMessage, publishMessage } = useWebSocket();
 
   if (!room || !userName) {
     // FIXME: Error handling
@@ -23,17 +23,17 @@ function Room() {
   }
 
   useEffect(() => {
-    handleMessage(({ payload }) => {
+    subscribeMessage(({ payload }) => {
       setLines([...lines, { ...payload }]);
     });
-  }, [handleMessage, lines, setLines]);
+  }, []);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(event.target.value);
   };
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    sendMessage({ room, userName, message });
+    publishMessage({ room, userName, message });
     setMessage('');
   };
   return (

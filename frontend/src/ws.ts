@@ -18,25 +18,28 @@ const ws$ = (({ REACT_APP_WS_URL: url }) => {
   return webSocket({ url });
 })(process.env);
 const message$ = ws$.multiplex(
-  () => ({ subscribe: 'MESSAGE' }),
-  () => ({ unsubscribe: 'MESSAGE' }),
+  () => ({ type: 'SUBSCRIBE' }),
+  () => ({ type: 'UNSUBSCRIBE' }),
   (event: unknown) =>
     (event as WebSocketEvent<MessagePayload>).type === 'MESSAGE'
 );
 
-function handleMessage(onMessage: (e: WebSocketEvent<MessagePayload>) => void) {
+function subscribeMessage(
+  onMessage: (e: WebSocketEvent<MessagePayload>) => void
+) {
   message$.subscribe((event: unknown) => {
     onMessage(event as WebSocketEvent<MessagePayload>);
   });
 }
 
-function sendMessage(payload: MessagePayload) {
+function publishMessage(payload: MessagePayload) {
   ws$.next({ type: 'MESSAGE', payload });
 }
 
 export function useWebSocket() {
   return {
-    handleMessage,
-    sendMessage,
+    subscribeMessage,
+    publishMessage,
+    message$,
   };
 }
