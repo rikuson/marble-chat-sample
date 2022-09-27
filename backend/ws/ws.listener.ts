@@ -1,6 +1,11 @@
-import { webSocketListener } from '@marblejs/websockets';
+import { webSocketListener, WsMiddlewareEffect } from '@marblejs/websockets';
 import { message$ } from './ws.effect';
+// import { logger$ } from './ws.logger';
 
 const effects = [message$];
 
-export const listener = webSocketListener({ effects });
+const middlewares: WsMiddlewareEffect[] = [
+  // logger$
+];
+
+export const listener = webSocketListener({ effects, middlewares });
