@@ -1,11 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useWebSocket } from './ws';
-
-type MessagePayload = {
-  room: string;
-  userName: string;
-  message: string;
-};
+import React, { useState, useEffect, useCallback } from 'react';
+import { useWebSocket, WebSocketEvent, MessagePayload } from './ws';
 
 const { searchParams } = new URL(location.href);
 const room = searchParams.get('room');
@@ -22,10 +16,15 @@ function Room() {
     throw new Error('err');
   }
 
-  useEffect(() => {
-    subscribeMessage(({ payload }) => {
+  const onMessage = useCallback(
+    ({ payload }: WebSocketEvent<MessagePayload>) => {
       setLines([...lines, { ...payload }]);
-    });
+    },
+    [lines, setLines]
+  );
+
+  useEffect(() => {
+    subscribeMessage(onMessage);
   }, []);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
