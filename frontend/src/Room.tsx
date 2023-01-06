@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useWebSocket, WebSocketEvent, MessagePayload } from './ws';
+import React, { useState } from 'react';
+import { useWebSocket } from './ws';
 
 const { searchParams } = new URL(location.href);
 const room = searchParams.get('room');
@@ -7,8 +7,6 @@ const userName = searchParams.get('userName');
 
 function Room() {
   const [message, setMessage] = useState('');
-  const [lines, setLines] = useState<MessagePayload[]>([]);
-  const { subscribeMessage, publishMessage } = useWebSocket();
 
   if (!room || !userName) {
     // FIXME: Error handling
@@ -16,23 +14,14 @@ function Room() {
     throw new Error('err');
   }
 
-  const onMessage = useCallback(
-    ({ payload }: WebSocketEvent<MessagePayload>) => {
-      setLines([...lines, { ...payload }]);
-    },
-    [lines, setLines]
-  );
-
-  useEffect(() => {
-    subscribeMessage(onMessage);
-  }, []);
+  const { messages, sendMessage } = useWebSocket({ room, userName });
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setMessage(event.target.value);
   };
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    publishMessage({ room, userName, message });
+    sendMessage(message);
     setMessage('');
   };
   return (
@@ -55,7 +44,7 @@ function Room() {
                   className="peer sr-only"
                   id="darkmode-switch"
                   type="checkbox"
-                  checked={true}
+                  defaultChecked={true}
                 />
                 <span
                   className={[
@@ -86,9 +75,9 @@ function Room() {
         id="subscribing"
         style={{ height: 'calc(100vh - 64px - 45px)' }}
       >
-        {lines.map(({ userName, message }, i) => (
+        {messages.map(({ userName, data }, i) => (
           <div key={i} className="p-2 border-b overflow-hidden leading-loose">
-            {userName}: {message}
+            {userName}: {data}
           </div>
         ))}
       </div>

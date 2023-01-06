@@ -1,45 +1,48 @@
+import { useCallback, useMemo, useState } from 'react';
 import { webSocket } from 'rxjs/webSocket';
 
-export type WebSocketEvent<T> = {
-  type: string;
-  payload: T;
-};
-
-export type MessagePayload = {
+export type Payload = {
   room: string;
   userName: string;
-  message: string;
+  data?: string;
 };
 
-const ws$ = (({ REACT_APP_WS_URL: url }) => {
-  if (!url) {
-    throw new Error('url is not defined');
-  }
-  return webSocket({ url });
-})(process.env);
-const message$ = ws$.multiplex(
-  () => ({ type: 'SUBSCRIBE' }),
-  () => ({ type: 'UNSUBSCRIBE' }),
-  (event: unknown) =>
-    (event as WebSocketEvent<MessagePayload>).type === 'MESSAGE'
-);
+export type Message = {
+  type: string;
+  payload: Payload;
+};
 
-function subscribeMessage(
-  onMessage: (e: WebSocketEvent<MessagePayload>) => void
-) {
-  message$.subscribe((event: unknown) => {
-    onMessage(event as WebSocketEvent<MessagePayload>);
-  });
-}
+export function useWebSocket(props: { room: string; userName: string }) {
+  const ws$ = webSocket<Message>({ url: <string>process.env.REACT_APP_WS_URL });
+  const [textMessages, setTextMessages] = useState<Message[]>([]);
 
-function publishMessage(payload: MessagePayload) {
-  ws$.next({ type: 'MESSAGE', payload });
-}
+  ws$
+    .multiplex(
+      () => ({ type: 'JOIN', payload: props }),
+      () => ({ type: 'LEAVE', payload: props }),
+      ({ type }) => type === 'TEXT'
+    )
+    .subscribe((message) => setTextMessages([...textMessages, message]));
 
-export function useWebSocket() {
+  const sendMessage = useCallback(
+    (data: string) =>
+      ws$.next({
+        type: 'TEXT',
+        payload: {
+          ...props,
+          data,
+        },
+      }),
+    [props]
+  );
+
+  const messages = useMemo(
+    () => textMessages.map(({ payload }) => payload),
+    [textMessages]
+  );
+
   return {
-    subscribeMessage,
-    publishMessage,
-    message$,
+    messages,
+    sendMessage,
   };
 }
